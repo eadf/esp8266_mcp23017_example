@@ -4,7 +4,7 @@ WORK IN PROGRESS
 
 I²C Port expander driver for esp8266.
 
-So far the driver can only write to the MCP23017 (using two pins of your own choice)
+~~So far the driver can only write to the MCP23017~~ fixed that. (using two pins of your own choice)
 
 ```
 #include "mcp23017/mcp23017.h"
