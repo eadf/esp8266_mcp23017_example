@@ -25,14 +25,14 @@
 #include "osapi.h"
 #include "gpio.h"
 
-
-void i2c_init(uint8_t scl_pin, uint8_t sda_pin);
+bool i2c_init(uint8_t scl_pin, uint8_t sda_pin);
 void i2c_start(void);
 void i2c_stop(void);
 void i2c_send_ack(uint8 state);
 uint8 i2c_check_ack(void);
-uint8 i2c_readByte(void);
-void i2c_writeByte(uint8 data);
+//uint8 i2c_readByte(void);
+bool i2c_readByteCheckAck(uint8_t *data);
+//void i2c_writeByte(uint8 data);
 bool i2c_writeByteCheckAck(uint8_t data);
 
 #endif

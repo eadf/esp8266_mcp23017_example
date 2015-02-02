@@ -19,26 +19,26 @@ static void setup(void);
  */
 static void ICACHE_FLASH_ATTR
 loop(void) {
-  mcp23017_begin(0);
-  os_printf("mcp23017_begin(0);\n");
-  os_delay_us(25000);
+  static uint8_t i = 0;
 
-  mcp23017_writeRegister(MCP23017_IODIRA, 0x00); // set all as output
-  os_delay_us(25000);
+  //mcp23017_writeRegister(MCP23017_IODIRB, i);
+  //os_printf("mcp23017_writeRegister(MCP23017_IODIRB, %d);\n", i);
+  //os_delay_us(500);
 
-  mcp23017_writeRegister(MCP23017_OLATA, 0xFF);  // set all bits on
-  os_delay_us(25000);
+  //uint8_t reg = mcp23017_readRegister(MCP23017_IODIRB);
+  //os_printf("mcp23017_readRegister(MCP23017_IODIRB, 0x00) == %d\n", reg);
+  //os_delay_us(20000);
 
-  mcp23017_writeRegister(MCP23017_OLATA, 0x00);  // set all bits off
-  os_delay_us(25000);
+  //mcp23017_writeRegister(MCP23017_OLATA, 0xFF);  // set all bits on
+  //os_delay_us(20000);
 
-  //mcp23017_pinMode(0, MCP23017_OUTPUT);
-  //os_printf("mcp23017_pinMode(0, MCP23017_OUTPUT);\n");
-  //os_delay_us(25000);
+  //mcp23017_writeRegister(MCP23017_OLATA, 0x00);  // set all bits off
+  //os_delay_us(20000);
 
-  //mcp23017_digitalWrite(0, true);
-  //os_printf("mcp23017_digitalWrite(0, true);\n");
-  //os_delay_us(25000);
+  mcp23017_digitalWrite(0, i&1);
+  os_printf("mcp23017_digitalWrite(0, %d);\n", i&1);
+  os_delay_us(20000);
+  i += 1;
 }
 
 /**
@@ -50,6 +50,10 @@ setup(void) {
   // setup stuff
   mcp23017_init(0,2);
   os_printf("mcp23017_init(0,2);\n");
+  mcp23017_begin(0);
+  os_printf("mcp23017_begin(0);\n");
+  mcp23017_pinMode(0, MCP23017_OUTPUT);
+  os_printf("mcp23017_pinMode(0, MCP23017_OUTPUT);\n");
 
   // Start loop timer
   os_timer_disarm(&loop_timer);

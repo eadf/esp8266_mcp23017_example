@@ -28,7 +28,7 @@ static uint8_t I2C_SCK_PIN = 14;
 
 #define I2C_SLEEP_TIME 5
 //#define I2C_SLEEP_TIME_DATA_SET 1
-#define I2C_SLEEP_TIME_DATA_WAIT 5 //4
+//#define I2C_SLEEP_TIME_DATA_WAIT 5 //4
 
 #define i2c_read() GPIO_INPUT_GET(GPIO_ID_PIN(I2C_SDA_PIN));
 #define i2c_disableOutput() GPIO_DIS_OUTPUT(GPIO_ID_PIN(I2C_SDA_PIN))
@@ -145,18 +145,16 @@ i2c_check_ack(void) {
 /**
  * Receive byte from the I2C bus 
  * returns the byte 
- */
+ *
 uint8_t ICACHE_FLASH_ATTR
 i2c_readByte(void) {
   uint8_t data = 0;
   uint8_t data_bit;
   uint8_t i;
 
-  // i2c_sda(1);
-  i2c_disableOutput();
-
   for (i = 0; i < 8; i++) {
     os_delay_us(I2C_SLEEP_TIME);
+    if (i==0) i2c_disableOutput();
     i2c_sck(0);
     os_delay_us(I2C_SLEEP_TIME);
 
@@ -174,11 +172,51 @@ i2c_readByte(void) {
 
   return data;
 }
+*/
+
+/**
+ * Receive byte from the I2C bus
+ * returns the byte
+ * returns the value of ACK
+ */
+bool ICACHE_FLASH_ATTR
+i2c_readByteCheckAck(uint8_t *data) {
+  *data = 0;
+  uint8_t data_bit;
+  uint8_t i;
+
+  for (i = 0; i < 8; i++) {
+    os_delay_us(I2C_SLEEP_TIME);
+    if (i==0) i2c_disableOutput();
+    i2c_sck(0);
+    os_delay_us(I2C_SLEEP_TIME);
+
+    i2c_sck(1);
+    os_delay_us(I2C_SLEEP_TIME);
+
+    data_bit = i2c_read();
+    os_delay_us(I2C_SLEEP_TIME);
+
+    data_bit <<= (7 - i);
+    *data |= data_bit;
+  }
+  // allow slave to ACK or NACK
+  i2c_disableOutput();
+  os_delay_us(I2C_SLEEP_TIME);
+
+  i2c_sck(1);
+  os_delay_us(I2C_SLEEP_TIME);
+  bool rv = i2c_read();
+
+  i2c_sck(0);
+  os_delay_us(I2C_SLEEP_TIME);
+  return rv;
+}
 
 /**
  * Write byte to I2C bus
  * uint8_t data: to byte to be written
- */
+ * /
 void ICACHE_FLASH_ATTR
 i2c_writeByte(uint8_t data) {
   uint8_t data_bit;
@@ -190,7 +228,7 @@ i2c_writeByte(uint8_t data) {
     data_bit = data >> i;
 
     i2c_sda(data_bit);
-    os_delay_us(I2C_SLEEP_TIME_DATA_WAIT);
+    os_delay_us(I2C_SLEEP_TIME);
 
     i2c_sck(1);
     os_delay_us(I2C_SLEEP_TIME);
@@ -198,9 +236,9 @@ i2c_writeByte(uint8_t data) {
 
     //os_delay_us(I2C_SLEEP_TIME_DATA_SET);
   }
-  os_delay_us(I2C_SLEEP_TIME_DATA_WAIT);
+  os_delay_us(I2C_SLEEP_TIME);
   i2c_disableOutput();
-}
+}*/
 
 /**
  * Write byte to I2C bus
@@ -213,23 +251,20 @@ i2c_writeByteCheckAck(uint8_t data) {
   int8_t i;
   bool rv = 0;
 
-  //os_delay_us(I2C_SLEEP_TIME_DATA_SET);
-
   for (i = 7; i >= 0; i--) {
     data_bit = data >> i;
 
     i2c_sda(data_bit);
-    os_delay_us(I2C_SLEEP_TIME_DATA_WAIT);
+    os_delay_us(I2C_SLEEP_TIME);
 
     i2c_sck(1);
     os_delay_us(I2C_SLEEP_TIME);
     i2c_sck(0);
 
-    //os_delay_us(I2C_SLEEP_TIME_DATA_SET);
   }
-  os_delay_us(I2C_SLEEP_TIME_DATA_WAIT);
+  // allow slave to ACK or NACK
   i2c_disableOutput();
-  //os_delay_us(I2C_SLEEP_TIME_DATA_SET);
+  os_delay_us(I2C_SLEEP_TIME);
 
   i2c_sck(1);
   os_delay_us(I2C_SLEEP_TIME);
@@ -242,24 +277,32 @@ i2c_writeByteCheckAck(uint8_t data) {
 
 /**
  * I2C init function
- * This sets up the GPIO io
+ * This sets up the GPIO pins
+ * Returns false if something fails
  */
-void ICACHE_FLASH_ATTR
+bool ICACHE_FLASH_ATTR
 i2c_init(uint8_t scl_pin, uint8_t sda_pin) {
   I2C_SDA_PIN = sda_pin;
   I2C_SCK_PIN = scl_pin;
 
+  if (I2C_SDA_PIN == I2C_SCK_PIN) {
+    os_printf("i2c_init: Error: You must specify two unique pins for this to work\n");
+    return false;
+  }
+
   //Disable interrupts
   ETS_GPIO_INTR_DISABLE();
 
-  easygpio_pinMode(I2C_SDA_PIN, EASYGPIO_NOPULL, EASYGPIO_OUTPUT);
-  easygpio_pinMode(I2C_SCK_PIN, EASYGPIO_NOPULL, EASYGPIO_OUTPUT);
+  if (!(easygpio_pinMode(I2C_SDA_PIN, EASYGPIO_NOPULL, EASYGPIO_OUTPUT) &&
+        easygpio_pinMode(I2C_SCK_PIN, EASYGPIO_NOPULL, EASYGPIO_OUTPUT) )) {
+    return false;
+  }
 
   //Turn interrupt back on
   ETS_GPIO_INTR_ENABLE();
 
   i2c_sda(1);
   i2c_sck(1);
-  return;
+  return true;
 }
 

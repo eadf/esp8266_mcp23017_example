@@ -65,8 +65,9 @@ void mcp23017_pinMode(uint8_t pin, MCP23017_PinMode pinmode);
  */
 void mcp23017_digitalWrite(uint8_t pin, bool data);
 
-void mcp23017_writeRegister(uint8_t regAddr, uint8_t regValue);
 
-static uint8_t mcp23017_readRegister(uint8_t regAddr);
+
+void mcp23017_writeRegister(uint8_t regAddr, uint8_t regValue);
+uint8_t mcp23017_readRegister(uint8_t regAddr);
 
 #endif /* DRIVER_MCP23017_INCLUDE_MCP23017_MCP23017_H_ */
