@@ -23,33 +23,62 @@
 #include "i2c/i2c.h"
 #include "easygpio/easygpio.h"
 
-#define I2C_SLEEP_TIME 5
+#define I2C_SLEEP_TIME 5 // 100KHz
 #define i2c_read() GPIO_INPUT_GET(GPIO_ID_PIN(self->sda_pin));
 #define i2c_disableOutput() GPIO_DIS_OUTPUT(GPIO_ID_PIN(self->sda_pin))
 
+
+static void i2c_start(I2C_Self* self);
+static void i2c_stop(I2C_Self* self);
+static bool i2c_readByteCheckAck(I2C_Self* self, uint8_t *data);
+static bool i2c_writeByteCheckAck(I2C_Self* self, uint8_t data);
+
+static bool i2c_beginTransmission(I2C_Self *self, uint8_t deviceAddr, bool read);
+
 /**
- * Set SDA to state
+ * Set SDA to state.
+ * This should *really* be done with the pull-up/downs but it does not work :/
  */
 static void ICACHE_FLASH_ATTR
 i2c_sda(I2C_Self* self, uint8_t state) {
   state &= 0x01;
   //Set SDA line to state
-  if (state)
-    gpio_output_set(1 << self->sda_pin, 0, 1 << self->sda_pin, 0);
-  else
-    gpio_output_set(0, 1 << self->sda_pin, 1 << self->sda_pin, 0);
+  GPIO_OUTPUT_SET(self->sda_pin, state);
+  if (false){
+    if (state)
+      gpio_output_set(1 << self->sda_pin, 0, 1 << self->sda_pin, 0);
+    else
+      gpio_output_set(0, 1 << self->sda_pin, 1 << self->sda_pin, 0);
+  //} else {
+    GPIO_DIS_OUTPUT(self->sda_pin);
+    if (state) {
+      PIN_PULLDWN_DIS(self->sda_name);
+      PIN_PULLUP_EN(self->sda_name);
+    } else {
+      PIN_PULLUP_DIS(self->sda_name);
+      PIN_PULLDWN_EN(self->sda_name);
+    }
+    //
+  }
 }
 
 /**
  * Set SCK to state
+ * This should *really* be done with the pull-up/downs but it does not work :/
+ * And if we are using the pin as a real output pin why not use
+ * GPIO_OUTPUT_SET(pin, value);?
  */
 static void ICACHE_FLASH_ATTR
 i2c_sck(I2C_Self* self, uint8_t state) {
   //Set SCK line to state
-  if (state)
-    gpio_output_set(1 << self->scl_pin, 0, 1 << self->scl_pin, 0);
-  else
-    gpio_output_set(0, 1 << self->scl_pin, 1 << self->scl_pin, 0);
+  if (false){
+    if (state)
+      gpio_output_set(1 << self->scl_pin, 0, 1 << self->scl_pin, 0);
+    else
+      gpio_output_set(0, 1 << self->scl_pin, 1 << self->scl_pin, 0);
+  } else {
+    GPIO_OUTPUT_SET(self->scl_pin, state);
+  }
 }
 
 /**
@@ -82,92 +111,46 @@ i2c_stop(I2C_Self* self) {
 }
 
 /**
- * Send I2C ACK to the bus
- * uint8_t state 1 or 0
- *  1 for ACK
- *  0 for NACK
+ * deviceAddr should be unshifted
+ * read : readmode=true, write=false
  */
-void ICACHE_FLASH_ATTR
-i2c_send_ack(I2C_Self* self, uint8_t state) {
-  i2c_sck(self,0);
-  os_delay_us(I2C_SLEEP_TIME);
-  //Set SDA
-  //  HIGH for NACK
-  //  LOW  for ACK
-  i2c_sda(self,(state ? 0 : 1));
-
-  //Pulse the SCK
-  i2c_sck(self,0);
-  os_delay_us(I2C_SLEEP_TIME);
-  i2c_sck(self,1);
-  os_delay_us(I2C_SLEEP_TIME);
-  i2c_sck(self,0);
-  os_delay_us(I2C_SLEEP_TIME);
-
-  i2c_sda(self,1);
-  os_delay_us(I2C_SLEEP_TIME);
+bool ICACHE_FLASH_ATTR
+i2c_beginTransmission(I2C_Self *self, uint8_t deviceAddr, bool read) {
+  i2c_start(self);
+  return i2c_writeByteCheckAck(self, (deviceAddr<<1)|read);
 }
 
 /**
- * Receive I2C ACK from the bus
- * returns 1 or 0
- *  1 for ACK
- *  0 for NACK
- *
-uint8_t ICACHE_FLASH_ATTR
-i2c_check_ack(I2C_Self* self) {
-  uint8_t ack;
-  i2c_sda(self,1);
-  os_delay_us(I2C_SLEEP_TIME);
-  i2c_sck(self,0);
-  os_delay_us(I2C_SLEEP_TIME);
-  i2c_sck(self,1);
-  os_delay_us(I2C_SLEEP_TIME);
+ * Reads a given register
+ */
+bool ICACHE_FLASH_ATTR
+i2c_readRegister(I2C_Self *self, uint8_t deviceAddr, uint8_t regAddr, uint8_t *regValue) {
+  bool rv = true;
 
-  //Get SDA pin status
-  ack = i2c_read();
+  rv &= i2c_beginTransmission(self, deviceAddr, false);
+  rv &= i2c_writeByteCheckAck(self, regAddr); // read request
+  i2c_stop(self);
 
-  os_delay_us(I2C_SLEEP_TIME);
-  i2c_sck(self,0);
-  os_delay_us(I2C_SLEEP_TIME);
-  i2c_sda(self,0);
-  os_delay_us(I2C_SLEEP_TIME);
-
-  return (ack ? 0 : 1);
+  rv &= i2c_beginTransmission(self, deviceAddr, true);
+  rv &= i2c_readByteCheckAck(self, regValue);
+  i2c_stop(self);
+  return rv;
 }
-*/
 
 /**
- * Receive byte from the I2C bus 
- * returns the byte 
- *
-uint8_t ICACHE_FLASH_ATTR
-i2c_readByte(void) {
-  uint8_t data = 0;
-  uint8_t data_bit;
-  uint8_t i;
+ * Writes a given register
+ */
+bool ICACHE_FLASH_ATTR
+i2c_writeRegister(I2C_Self *self, uint8_t deviceAddr, uint8_t regAddr, uint8_t regValue) {
+  bool rv = true;
 
-  for (i = 0; i < 8; i++) {
-    os_delay_us(I2C_SLEEP_TIME);
-    if (i==0) i2c_disableOutput();
-    i2c_sck(0);
-    os_delay_us(I2C_SLEEP_TIME);
-
-    i2c_sck(1);
-    os_delay_us(I2C_SLEEP_TIME);
-
-    data_bit = i2c_read();
-    os_delay_us(I2C_SLEEP_TIME);
-
-    data_bit <<= (7 - i);
-    data |= data_bit;
-  }
-  i2c_sck(0);
-  os_delay_us(I2C_SLEEP_TIME);
-
-  return data;
+  // Write the register
+  rv &= i2c_beginTransmission(self, deviceAddr, false);
+  rv &= i2c_writeByteCheckAck(self, regAddr);
+  rv &= i2c_writeByteCheckAck(self, regValue);
+  i2c_stop(self);
+  return rv;
 }
-*/
 
 /**
  * Receive byte from the I2C bus
@@ -211,33 +194,6 @@ i2c_readByteCheckAck(I2C_Self* self, uint8_t *data) {
 /**
  * Write byte to I2C bus
  * uint8_t data: to byte to be written
- * /
-void ICACHE_FLASH_ATTR
-i2c_writeByte(uint8_t data) {
-  uint8_t data_bit;
-  int8_t i;
-
-  //os_delay_us(I2C_SLEEP_TIME_DATA_SET);
-
-  for (i = 7; i >= 0; i--) {
-    data_bit = data >> i;
-
-    i2c_sda(data_bit);
-    os_delay_us(I2C_SLEEP_TIME);
-
-    i2c_sck(1);
-    os_delay_us(I2C_SLEEP_TIME);
-    i2c_sck(0);
-
-    //os_delay_us(I2C_SLEEP_TIME_DATA_SET);
-  }
-  os_delay_us(I2C_SLEEP_TIME);
-  i2c_disableOutput();
-}*/
-
-/**
- * Write byte to I2C bus
- * uint8_t data: to byte to be written
  * returns the value of ACK
  */
 bool ICACHE_FLASH_ATTR
@@ -277,6 +233,8 @@ i2c_writeByteCheckAck(I2C_Self* self, uint8_t data) {
  */
 bool ICACHE_FLASH_ATTR
 i2c_init(I2C_Self* self, uint8_t scl_pin, uint8_t sda_pin) {
+  uint8_t gpio_func;
+
   if (self == NULL){
     os_printf("i2c_init: Error: self can't be null\n");
     return false;
@@ -290,11 +248,14 @@ i2c_init(I2C_Self* self, uint8_t scl_pin, uint8_t sda_pin) {
     return false;
   }
 
+  easygpio_getGPIONameFunc(self->sda_pin, &(self->sda_name), &gpio_func);
+  easygpio_getGPIONameFunc(self->scl_pin, &(self->scl_name), &gpio_func);
+
   //Disable interrupts
   ETS_GPIO_INTR_DISABLE();
 
-  if (!(easygpio_pinMode(self->sda_pin, EASYGPIO_NOPULL, EASYGPIO_OUTPUT) &&
-        easygpio_pinMode(self->scl_pin, EASYGPIO_NOPULL, EASYGPIO_OUTPUT) )) {
+  if (!(easygpio_pinMode(self->sda_pin, EASYGPIO_PULLUP, EASYGPIO_INPUT) &&
+        easygpio_pinMode(self->scl_pin, EASYGPIO_PULLUP, EASYGPIO_INPUT) )) {
     return false;
   }
 

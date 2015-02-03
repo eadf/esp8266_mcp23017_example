@@ -36,6 +36,7 @@
 
 // registers
 
+#define MCP23017_IODIRA 0x00
 #define MCP23017_IPOLA 0x02
 #define MCP23017_GPINTENA 0x04
 #define MCP23017_DEFVALA 0x06
@@ -45,7 +46,9 @@
 #define MCP23017_INTFA 0x0E
 #define MCP23017_INTCAPA 0x10
 #define MCP23017_GPIOA 0x12
+#define MCP23017_OLATA 0x14
 
+#define MCP23017_IODIRB 0x01
 #define MCP23017_IPOLB 0x03
 #define MCP23017_GPINTENB 0x05
 #define MCP23017_DEFVALB 0x07
@@ -55,16 +58,18 @@
 #define MCP23017_INTFB 0x0F
 #define MCP23017_INTCAPB 0x11
 #define MCP23017_GPIOB 0x13
+#define MCP23017_OLATB 0x15
 
 #define MCP23017_INT_ERR 255
 
 
 // forward declarations
-static bool mcp23017_beginTransmission(MCP23017_Self *self, uint8_t address, bool read);
 static uint8_t mcp23017_bitForPin(uint8_t pin);
 static uint8_t mcp23017_regForPin(uint8_t pin, uint8_t portAaddr, uint8_t portBaddr);
 static bool mcp23017_updateRegisterBit(MCP23017_Self *self, uint8_t deviceAddr, uint8_t pin, uint8_t pValue, uint8_t portAaddr, uint8_t portBaddr);
 static uint8_t mcp23017_bitWrite(uint8_t value, uint8_t bitNumber, uint8_t setValue);
+static bool mcp23017_writeRegister(MCP23017_Self *self, uint8_t deviceAddr, uint8_t regAddr, uint8_t regValue);
+static bool mcp23017_readRegister(MCP23017_Self *self, uint8_t deviceAddr, uint8_t regAddr, uint8_t *rv);
 
 /**
  * initiates the device. Sets the SCL and SDA pins
@@ -120,15 +125,7 @@ mcp23017_readRegister(MCP23017_Self *self, uint8_t deviceAddr, uint8_t regAddr, 
 
   deviceAddr &= 0x7;
   deviceAddr |= MCP23017_ADDRESS;
-
-  rv &= mcp23017_beginTransmission(self, deviceAddr, false);
-  rv &= i2c_writeByteCheckAck(&(self->i2c), regAddr); // read request
-  i2c_stop(&(self->i2c));
-
-  rv &= mcp23017_beginTransmission(self, deviceAddr, true);
-  rv &= i2c_readByteCheckAck(&(self->i2c), regValue);
-  i2c_stop(&(self->i2c));
-  return rv;
+  return i2c_readRegister(&(self->i2c), deviceAddr, regAddr, regValue);
 }
 
 /**
@@ -140,12 +137,7 @@ mcp23017_writeRegister(MCP23017_Self *self, uint8_t deviceAddr, uint8_t regAddr,
   deviceAddr &= 0x7;
   deviceAddr |= MCP23017_ADDRESS;
 
-  // Write the register
-  rv &= mcp23017_beginTransmission(self, deviceAddr, false);
-  rv &= i2c_writeByteCheckAck(&(self->i2c), regAddr);
-  rv &= i2c_writeByteCheckAck(&(self->i2c), regValue);
-  i2c_stop(&(self->i2c));
-  return rv;
+  return i2c_writeRegister(&(self->i2c), deviceAddr, regAddr, regValue);
 }
 
 /**
@@ -162,12 +154,6 @@ mcp23017_regForPin(uint8_t pin, uint8_t portAaddr, uint8_t portBaddr) {
 static uint8_t ICACHE_FLASH_ATTR
 mcp23017_bitForPin(uint8_t pin) {
   return pin%8;
-}
-
-static bool ICACHE_FLASH_ATTR
-mcp23017_beginTransmission(MCP23017_Self *self, uint8_t deviceAddr, bool read) {
-  i2c_start(&(self->i2c));
-  return i2c_writeByteCheckAck(&(self->i2c), (deviceAddr<<1)|read);
 }
 
 /**

@@ -35,12 +35,6 @@
 #include "i2c/i2c.h"
 #include "c_types.h"
 
-#define MCP23017_OLATA 0x14
-#define MCP23017_OLATB 0x15
-
-#define MCP23017_IODIRA 0x00
-#define MCP23017_IODIRB 0x01
-
 typedef struct {
   I2C_Self i2c;
 } MCP23017_Self;
@@ -75,12 +69,5 @@ bool mcp23017_pinModeAB(MCP23017_Self *self, uint8_t deviceAddr, MCP23017_PinMod
  */
 bool mcp23017_digitalWriteAB(MCP23017_Self *self, uint8_t deviceAddr, uint16_t data);
 
-
-
-// not intended to be 'public' like this
-bool mcp23017_writeRegister(MCP23017_Self *self, uint8_t deviceAddr, uint8_t regAddr, uint8_t regValue);
-
-// not intended to be 'public' like this
-bool mcp23017_readRegister(MCP23017_Self *self, uint8_t deviceAddr, uint8_t regAddr, uint8_t *rv);
 
 #endif /* DRIVER_MCP23017_INCLUDE_MCP23017_MCP23017_H_ */

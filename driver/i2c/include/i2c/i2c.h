@@ -27,17 +27,24 @@
 
 typedef struct {
   uint8_t scl_pin;
+  uint32_t scl_name;
   uint8_t sda_pin;
+  uint32_t sda_name;
 } I2C_Self;
 
+/**
+ * Reads a given register
+ */
+bool i2c_readRegister(I2C_Self *self, uint8_t deviceAddr, uint8_t regAddr, uint8_t *regValue);
+
+/**
+ * Writes a given register
+ */
+bool i2c_writeRegister(I2C_Self *self, uint8_t deviceAddr, uint8_t regAddr, uint8_t regValue);
+
+/**
+ * initiates the GPIO pins and fills the I2C_Self struct
+ */
 bool i2c_init(I2C_Self* self, uint8_t scl_pin, uint8_t sda_pin);
-void i2c_start(I2C_Self* self);
-void i2c_stop(I2C_Self* self);
-void i2c_send_ack(I2C_Self* self, uint8 state);
-uint8 i2c_check_ack(I2C_Self* self);
-//uint8 i2c_readByte(void);
-bool i2c_readByteCheckAck(I2C_Self* self, uint8_t *data);
-//void i2c_writeByte(uint8 data);
-bool i2c_writeByteCheckAck(I2C_Self* self, uint8_t data);
 
 #endif
