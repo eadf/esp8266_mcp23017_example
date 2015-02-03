@@ -85,7 +85,7 @@ i2c_sck(I2C_Self* self, uint8_t state) {
  * I2C Start signal.
  * Data Transfer is initiated with a START bit (S) signaled by SDA being pulled low while SCL stays high.
  */
-void ICACHE_FLASH_ATTR
+static void ICACHE_FLASH_ATTR
 i2c_start(I2C_Self* self) {
   i2c_sda(self, 1);
   i2c_sck(self, 1);
@@ -100,7 +100,7 @@ i2c_start(I2C_Self* self) {
  * I2C Stop signal.
  * A STOP bit (P) is signaled when SDA is pulled high while SCL is high.
  */
-void ICACHE_FLASH_ATTR
+static void ICACHE_FLASH_ATTR
 i2c_stop(I2C_Self* self) {
   i2c_sda(self,0); // According to http://en.wikipedia.org/wiki/I%C2%B2C this must be set low
   os_delay_us(I2C_SLEEP_TIME);
@@ -114,7 +114,7 @@ i2c_stop(I2C_Self* self) {
  * deviceAddr should be unshifted
  * read : readmode=true, write=false
  */
-bool ICACHE_FLASH_ATTR
+static bool ICACHE_FLASH_ATTR
 i2c_beginTransmission(I2C_Self *self, uint8_t deviceAddr, bool read) {
   i2c_start(self);
   return i2c_writeByteCheckAck(self, (deviceAddr<<1)|read);
@@ -157,7 +157,7 @@ i2c_writeRegister(I2C_Self *self, uint8_t deviceAddr, uint8_t regAddr, uint8_t r
  * returns the byte
  * returns the value of ACK
  */
-bool ICACHE_FLASH_ATTR
+static bool ICACHE_FLASH_ATTR
 i2c_readByteCheckAck(I2C_Self* self, uint8_t *data) {
   *data = 0;
   uint8_t data_bit;
@@ -196,7 +196,7 @@ i2c_readByteCheckAck(I2C_Self* self, uint8_t *data) {
  * uint8_t data: to byte to be written
  * returns the value of ACK
  */
-bool ICACHE_FLASH_ATTR
+static bool ICACHE_FLASH_ATTR
 i2c_writeByteCheckAck(I2C_Self* self, uint8_t data) {
   uint8_t data_bit;
   int8_t i;
