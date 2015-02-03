@@ -16,7 +16,7 @@ uint8_t deviceAddr=0;
 uint8_t aMcpPin = 2;
 
 mcp23017_init(&mcpSelf, scl_pin, sda_pin);
-mcp23017_pinMode(&mcpSelf, deviceAddr, MCP23017_OUTPUT);
+mcp23017_pinMode(&mcpSelf, deviceAddr, aMcpPin, MCP23017_OUTPUT);
 
 ....
 
