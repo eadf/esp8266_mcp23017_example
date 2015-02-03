@@ -4,7 +4,7 @@ WORK IN PROGRESS
 
 I²C Port expander driver for esp8266.
 
-So far the driver can only write to the MCP23017 (using two pins of your own choice)
+~~So far the driver can only write to the MCP23017~~ fixed that. (using two pins of your own choice)
 
 ```
 #include "mcp23017/mcp23017.h"
@@ -30,7 +30,7 @@ mcp23017_writeRegister(MCP23017_OLATB, 0x00);  // set all bits off
   
 The I²C driver is based on [zarya's I²C driver](https://github.com/zarya/esp8266_i2c_driver).
 
-While the rest of the MCP23017 driver is influenced by [Adafruit-MCP23017-Arduino-Library](https://github.com/adafruit/Adafruit-MCP23017-Arduino-Library).
+While the rest of the MCP23017 driver is a heavily modified port of [Adafruit-MCP23017-Arduino-Library](https://github.com/adafruit/Adafruit-MCP23017-Arduino-Library).
 
 ###Required:
 
