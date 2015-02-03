@@ -91,6 +91,14 @@ mcp23017_pinModeAB(MCP23017_Self *self, uint8_t deviceAddr, MCP23017_PinMode pin
 }
 
 bool ICACHE_FLASH_ATTR
+mcp23017_digitalWriteAB(MCP23017_Self *self, uint8_t deviceAddr, uint16_t data) {
+  bool rv = true;
+  rv &= mcp23017_writeRegister(self, deviceAddr, MCP23017_GPIOA, data);
+  rv &= mcp23017_writeRegister(self, deviceAddr, MCP23017_GPIOB, data>>8);
+  return rv;
+}
+
+bool ICACHE_FLASH_ATTR
 mcp23017_digitalWrite(MCP23017_Self *self, uint8_t deviceAddr, uint8_t pin, bool data) {
   uint8_t gpio;
   bool rv = true;
@@ -107,6 +115,17 @@ mcp23017_digitalWrite(MCP23017_Self *self, uint8_t deviceAddr, uint8_t pin, bool
   rv &= mcp23017_writeRegister(self, deviceAddr, regAddr,gpio);
   return rv;
 }
+
+bool ICACHE_FLASH_ATTR
+mcp23017_digitalRead(MCP23017_Self *self, uint8_t deviceAddr, uint8_t pin, bool* data) {
+  uint8_t bit=mcp23017_bitForPin(pin);
+  uint8_t regValue = 0;
+  uint8_t regAddr=mcp23017_regForPin(pin,MCP23017_GPIOA,MCP23017_GPIOB);
+  bool rv =mcp23017_readRegister(self, deviceAddr, regAddr, &regValue);
+  *data = (regValue >> bit) & 0x1;
+  return rv;
+}
+
 
 /**
  * Sets the pin mode to either MCP23017_INPUT or MCP23017_OUTPUT

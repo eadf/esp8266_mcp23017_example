@@ -55,9 +55,14 @@ bool mcp23017_init(MCP23017_Self *self, uint8_t scl_pin, uint8_t sda_pin);
 bool mcp23017_pinMode(MCP23017_Self *self, uint8_t deviceAddr, uint8_t pin, MCP23017_PinMode pinmode);
 
 /**
- * Sets the pin mode to either MCP23017_INPUT or MCP23017_OUTPUT
+ * Sets the output data of the pin
  */
 bool mcp23017_digitalWrite(MCP23017_Self *self, uint8_t deviceAddr, uint8_t pin, bool data);
+
+/**
+ * reads the value of the pin
+ */
+bool mcp23017_digitalRead(MCP23017_Self *self, uint8_t deviceAddr, uint8_t pin, bool* data);
 
 /**
  * Sets the pin mode on all the pins to MCP23017_INPUT or MCP23017_OUTPUT
@@ -68,6 +73,11 @@ bool mcp23017_pinModeAB(MCP23017_Self *self, uint8_t deviceAddr, MCP23017_PinMod
  * writes to all the pins at once
  */
 bool mcp23017_digitalWriteAB(MCP23017_Self *self, uint8_t deviceAddr, uint16_t data);
+
+/**
+ * reads the value of all the pins at once
+ */
+bool mcp23017_digitalReadAB(MCP23017_Self *self, uint8_t deviceAddr, uint16_t* data);
 
 
 #endif /* DRIVER_MCP23017_INCLUDE_MCP23017_MCP23017_H_ */
