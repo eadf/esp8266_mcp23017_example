@@ -25,14 +25,19 @@
 #include "osapi.h"
 #include "gpio.h"
 
-bool i2c_init(uint8_t scl_pin, uint8_t sda_pin);
-void i2c_start(void);
-void i2c_stop(void);
-void i2c_send_ack(uint8 state);
-uint8 i2c_check_ack(void);
+typedef struct {
+  uint8_t scl_pin;
+  uint8_t sda_pin;
+} I2C_Self;
+
+bool i2c_init(I2C_Self* self, uint8_t scl_pin, uint8_t sda_pin);
+void i2c_start(I2C_Self* self);
+void i2c_stop(I2C_Self* self);
+void i2c_send_ack(I2C_Self* self, uint8 state);
+uint8 i2c_check_ack(I2C_Self* self);
 //uint8 i2c_readByte(void);
-bool i2c_readByteCheckAck(uint8_t *data);
+bool i2c_readByteCheckAck(I2C_Self* self, uint8_t *data);
 //void i2c_writeByte(uint8 data);
-bool i2c_writeByteCheckAck(uint8_t data);
+bool i2c_writeByteCheckAck(I2C_Self* self, uint8_t data);
 
 #endif

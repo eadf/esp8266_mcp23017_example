@@ -23,39 +23,33 @@
 #include "i2c/i2c.h"
 #include "easygpio/easygpio.h"
 
-static uint8_t I2C_SDA_PIN = 2;
-static uint8_t I2C_SCK_PIN = 14;
-
 #define I2C_SLEEP_TIME 5
-//#define I2C_SLEEP_TIME_DATA_SET 1
-//#define I2C_SLEEP_TIME_DATA_WAIT 5 //4
-
-#define i2c_read() GPIO_INPUT_GET(GPIO_ID_PIN(I2C_SDA_PIN));
-#define i2c_disableOutput() GPIO_DIS_OUTPUT(GPIO_ID_PIN(I2C_SDA_PIN))
+#define i2c_read() GPIO_INPUT_GET(GPIO_ID_PIN(self->sda_pin));
+#define i2c_disableOutput() GPIO_DIS_OUTPUT(GPIO_ID_PIN(self->sda_pin))
 
 /**
  * Set SDA to state
  */
 static void ICACHE_FLASH_ATTR
-i2c_sda(uint8_t state) {
+i2c_sda(I2C_Self* self, uint8_t state) {
   state &= 0x01;
   //Set SDA line to state
   if (state)
-    gpio_output_set(1 << I2C_SDA_PIN, 0, 1 << I2C_SDA_PIN, 0);
+    gpio_output_set(1 << self->sda_pin, 0, 1 << self->sda_pin, 0);
   else
-    gpio_output_set(0, 1 << I2C_SDA_PIN, 1 << I2C_SDA_PIN, 0);
+    gpio_output_set(0, 1 << self->sda_pin, 1 << self->sda_pin, 0);
 }
 
 /**
  * Set SCK to state
  */
 static void ICACHE_FLASH_ATTR
-i2c_sck(uint8_t state) {
+i2c_sck(I2C_Self* self, uint8_t state) {
   //Set SCK line to state
   if (state)
-    gpio_output_set(1 << I2C_SCK_PIN, 0, 1 << I2C_SCK_PIN, 0);
+    gpio_output_set(1 << self->scl_pin, 0, 1 << self->scl_pin, 0);
   else
-    gpio_output_set(0, 1 << I2C_SCK_PIN, 1 << I2C_SCK_PIN, 0);
+    gpio_output_set(0, 1 << self->scl_pin, 1 << self->scl_pin, 0);
 }
 
 /**
@@ -63,13 +57,13 @@ i2c_sck(uint8_t state) {
  * Data Transfer is initiated with a START bit (S) signaled by SDA being pulled low while SCL stays high.
  */
 void ICACHE_FLASH_ATTR
-i2c_start(void) {
-  i2c_sda(1);
-  i2c_sck(1);
+i2c_start(I2C_Self* self) {
+  i2c_sda(self, 1);
+  i2c_sck(self, 1);
   os_delay_us(I2C_SLEEP_TIME);
-  i2c_sda(0);
+  i2c_sda(self, 0);
   os_delay_us(I2C_SLEEP_TIME);
-  i2c_sck(0);
+  i2c_sck(self, 0);
   os_delay_us(I2C_SLEEP_TIME);
 }
 
@@ -78,12 +72,12 @@ i2c_start(void) {
  * A STOP bit (P) is signaled when SDA is pulled high while SCL is high.
  */
 void ICACHE_FLASH_ATTR
-i2c_stop(void) {
-  i2c_sda(0); // According to http://en.wikipedia.org/wiki/I%C2%B2C this must be set low
+i2c_stop(I2C_Self* self) {
+  i2c_sda(self,0); // According to http://en.wikipedia.org/wiki/I%C2%B2C this must be set low
   os_delay_us(I2C_SLEEP_TIME);
-  i2c_sck(1);
+  i2c_sck(self,1);
   os_delay_us(I2C_SLEEP_TIME);
-  i2c_sda(1);
+  i2c_sda(self,1);
   os_delay_us(I2C_SLEEP_TIME);
 }
 
@@ -94,23 +88,23 @@ i2c_stop(void) {
  *  0 for NACK
  */
 void ICACHE_FLASH_ATTR
-i2c_send_ack(uint8_t state) {
-  i2c_sck(0);
+i2c_send_ack(I2C_Self* self, uint8_t state) {
+  i2c_sck(self,0);
   os_delay_us(I2C_SLEEP_TIME);
   //Set SDA
   //  HIGH for NACK
   //  LOW  for ACK
-  i2c_sda((state ? 0 : 1));
+  i2c_sda(self,(state ? 0 : 1));
 
   //Pulse the SCK
-  i2c_sck(0);
+  i2c_sck(self,0);
   os_delay_us(I2C_SLEEP_TIME);
-  i2c_sck(1);
+  i2c_sck(self,1);
   os_delay_us(I2C_SLEEP_TIME);
-  i2c_sck(0);
+  i2c_sck(self,0);
   os_delay_us(I2C_SLEEP_TIME);
 
-  i2c_sda(1);
+  i2c_sda(self,1);
   os_delay_us(I2C_SLEEP_TIME);
 }
 
@@ -119,28 +113,29 @@ i2c_send_ack(uint8_t state) {
  * returns 1 or 0
  *  1 for ACK
  *  0 for NACK
- */
+ *
 uint8_t ICACHE_FLASH_ATTR
-i2c_check_ack(void) {
+i2c_check_ack(I2C_Self* self) {
   uint8_t ack;
-  i2c_sda(1);
+  i2c_sda(self,1);
   os_delay_us(I2C_SLEEP_TIME);
-  i2c_sck(0);
+  i2c_sck(self,0);
   os_delay_us(I2C_SLEEP_TIME);
-  i2c_sck(1);
+  i2c_sck(self,1);
   os_delay_us(I2C_SLEEP_TIME);
 
   //Get SDA pin status
   ack = i2c_read();
 
   os_delay_us(I2C_SLEEP_TIME);
-  i2c_sck(0);
+  i2c_sck(self,0);
   os_delay_us(I2C_SLEEP_TIME);
-  i2c_sda(0);
+  i2c_sda(self,0);
   os_delay_us(I2C_SLEEP_TIME);
 
   return (ack ? 0 : 1);
 }
+*/
 
 /**
  * Receive byte from the I2C bus 
@@ -180,7 +175,7 @@ i2c_readByte(void) {
  * returns the value of ACK
  */
 bool ICACHE_FLASH_ATTR
-i2c_readByteCheckAck(uint8_t *data) {
+i2c_readByteCheckAck(I2C_Self* self, uint8_t *data) {
   *data = 0;
   uint8_t data_bit;
   uint8_t i;
@@ -188,10 +183,10 @@ i2c_readByteCheckAck(uint8_t *data) {
   for (i = 0; i < 8; i++) {
     os_delay_us(I2C_SLEEP_TIME);
     if (i==0) i2c_disableOutput();
-    i2c_sck(0);
+    i2c_sck(self,0);
     os_delay_us(I2C_SLEEP_TIME);
 
-    i2c_sck(1);
+    i2c_sck(self,1);
     os_delay_us(I2C_SLEEP_TIME);
 
     data_bit = i2c_read();
@@ -204,11 +199,11 @@ i2c_readByteCheckAck(uint8_t *data) {
   i2c_disableOutput();
   os_delay_us(I2C_SLEEP_TIME);
 
-  i2c_sck(1);
+  i2c_sck(self,1);
   os_delay_us(I2C_SLEEP_TIME);
   bool rv = i2c_read();
 
-  i2c_sck(0);
+  i2c_sck(self,0);
   os_delay_us(I2C_SLEEP_TIME);
   return rv;
 }
@@ -246,7 +241,7 @@ i2c_writeByte(uint8_t data) {
  * returns the value of ACK
  */
 bool ICACHE_FLASH_ATTR
-i2c_writeByteCheckAck(uint8_t data) {
+i2c_writeByteCheckAck(I2C_Self* self, uint8_t data) {
   uint8_t data_bit;
   int8_t i;
   bool rv = 0;
@@ -254,23 +249,23 @@ i2c_writeByteCheckAck(uint8_t data) {
   for (i = 7; i >= 0; i--) {
     data_bit = data >> i;
 
-    i2c_sda(data_bit);
+    i2c_sda(self,data_bit);
     os_delay_us(I2C_SLEEP_TIME);
 
-    i2c_sck(1);
+    i2c_sck(self,1);
     os_delay_us(I2C_SLEEP_TIME);
-    i2c_sck(0);
+    i2c_sck(self,0);
 
   }
   // allow slave to ACK or NACK
   i2c_disableOutput();
   os_delay_us(I2C_SLEEP_TIME);
 
-  i2c_sck(1);
+  i2c_sck(self, 1);
   os_delay_us(I2C_SLEEP_TIME);
   rv = i2c_read();
 
-  i2c_sck(0);
+  i2c_sck(self, 0);
   os_delay_us(I2C_SLEEP_TIME);
   return rv;
 }
@@ -281,11 +276,16 @@ i2c_writeByteCheckAck(uint8_t data) {
  * Returns false if something fails
  */
 bool ICACHE_FLASH_ATTR
-i2c_init(uint8_t scl_pin, uint8_t sda_pin) {
-  I2C_SDA_PIN = sda_pin;
-  I2C_SCK_PIN = scl_pin;
+i2c_init(I2C_Self* self, uint8_t scl_pin, uint8_t sda_pin) {
+  if (self == NULL){
+    os_printf("i2c_init: Error: self can't be null\n");
+    return false;
+  }
 
-  if (I2C_SDA_PIN == I2C_SCK_PIN) {
+  self->sda_pin = sda_pin;
+  self->scl_pin = scl_pin;
+
+  if (self->sda_pin == self->scl_pin) {
     os_printf("i2c_init: Error: You must specify two unique pins for this to work\n");
     return false;
   }
@@ -293,16 +293,16 @@ i2c_init(uint8_t scl_pin, uint8_t sda_pin) {
   //Disable interrupts
   ETS_GPIO_INTR_DISABLE();
 
-  if (!(easygpio_pinMode(I2C_SDA_PIN, EASYGPIO_NOPULL, EASYGPIO_OUTPUT) &&
-        easygpio_pinMode(I2C_SCK_PIN, EASYGPIO_NOPULL, EASYGPIO_OUTPUT) )) {
+  if (!(easygpio_pinMode(self->sda_pin, EASYGPIO_NOPULL, EASYGPIO_OUTPUT) &&
+        easygpio_pinMode(self->scl_pin, EASYGPIO_NOPULL, EASYGPIO_OUTPUT) )) {
     return false;
   }
 
   //Turn interrupt back on
   ETS_GPIO_INTR_ENABLE();
 
-  i2c_sda(1);
-  i2c_sck(1);
+  i2c_sda(self, 1);
+  i2c_sck(self, 1);
   return true;
 }
 

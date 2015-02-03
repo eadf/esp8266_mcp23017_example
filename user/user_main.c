@@ -10,6 +10,8 @@
 
 #define user_procTaskPeriod      1000
 static volatile os_timer_t loop_timer;
+static uint8_t deviceAddr = 0;
+static MCP23017_Self mcpSelf;
 
 static void loop(void);
 static void setup(void);
@@ -20,6 +22,10 @@ static void setup(void);
 static void ICACHE_FLASH_ATTR
 loop(void) {
   static uint8_t i = 0;
+
+  mcp23017_pinMode(&mcpSelf, deviceAddr, 0, MCP23017_OUTPUT);
+  os_printf("mcp23017_pinMode(0, MCP23017_OUTPUT);\n");
+  os_delay_us(10000);
 
   //mcp23017_writeRegister(MCP23017_IODIRB, i);
   //os_printf("mcp23017_writeRegister(MCP23017_IODIRB, %d);\n", i);
@@ -35,9 +41,9 @@ loop(void) {
   //mcp23017_writeRegister(MCP23017_OLATA, 0x00);  // set all bits off
   //os_delay_us(20000);
 
-  mcp23017_digitalWrite(0, i&1);
-  os_printf("mcp23017_digitalWrite(0, %d);\n", i&1);
-  os_delay_us(20000);
+  mcp23017_digitalWrite(&mcpSelf, deviceAddr, 0, i&1);
+  os_printf("mcp23017_digitalWrite(deviceAddr, 0, %d);\n", i&1);
+  os_delay_us(10000);
   i += 1;
 }
 
@@ -48,12 +54,8 @@ loop(void) {
 static void ICACHE_FLASH_ATTR
 setup(void) {
   // setup stuff
-  mcp23017_init(0,2);
+  mcp23017_init(&mcpSelf, 0, 2);
   os_printf("mcp23017_init(0,2);\n");
-  mcp23017_begin(0);
-  os_printf("mcp23017_begin(0);\n");
-  mcp23017_pinMode(0, MCP23017_OUTPUT);
-  os_printf("mcp23017_pinMode(0, MCP23017_OUTPUT);\n");
 
   // Start loop timer
   os_timer_disarm(&loop_timer);

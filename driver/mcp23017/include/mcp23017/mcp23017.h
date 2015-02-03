@@ -32,6 +32,7 @@
 #ifndef DRIVER_MCP23017_INCLUDE_MCP23017_MCP23017_H_
 #define DRIVER_MCP23017_INCLUDE_MCP23017_MCP23017_H_
 
+#include "i2c/i2c.h"
 #include "c_types.h"
 
 #define MCP23017_OLATA 0x14
@@ -39,6 +40,10 @@
 
 #define MCP23017_IODIRA 0x00
 #define MCP23017_IODIRB 0x01
+
+typedef struct {
+  I2C_Self i2c;
+} MCP23017_Self;
 
 typedef enum {
   MCP23017_INPUT=0,
@@ -48,26 +53,34 @@ typedef enum {
 /**
  * initiates the device. Sets the SCL and SDA pins
  */
-bool mcp23017_init(uint8_t scl_pin, uint8_t sda_pin);
-
-/**
- * Initializes the MCP23017 given its HW selected address, see datasheet for Address selection.
- */
-void mcp23017_begin(uint8_t addr);
+bool mcp23017_init(MCP23017_Self *self, uint8_t scl_pin, uint8_t sda_pin);
 
 /**
  * Sets the pin mode to either MCP23017_INPUT or MCP23017_OUTPUT
  */
-void mcp23017_pinMode(uint8_t pin, MCP23017_PinMode pinmode);
+bool mcp23017_pinMode(MCP23017_Self *self, uint8_t deviceAddr, uint8_t pin, MCP23017_PinMode pinmode);
 
 /**
  * Sets the pin mode to either MCP23017_INPUT or MCP23017_OUTPUT
  */
-void mcp23017_digitalWrite(uint8_t pin, bool data);
+bool mcp23017_digitalWrite(MCP23017_Self *self, uint8_t deviceAddr, uint8_t pin, bool data);
+
+/**
+ * Sets the pin mode on all the pins to MCP23017_INPUT or MCP23017_OUTPUT
+ */
+bool mcp23017_pinModeAB(MCP23017_Self *self, uint8_t deviceAddr, MCP23017_PinMode pinmode);
+
+/**
+ * writes to all the pins at once
+ */
+bool mcp23017_digitalWriteAB(MCP23017_Self *self, uint8_t deviceAddr, uint16_t data);
 
 
 
-void mcp23017_writeRegister(uint8_t regAddr, uint8_t regValue);
-uint8_t mcp23017_readRegister(uint8_t regAddr);
+// not intended to be 'public' like this
+bool mcp23017_writeRegister(MCP23017_Self *self, uint8_t deviceAddr, uint8_t regAddr, uint8_t regValue);
+
+// not intended to be 'public' like this
+bool mcp23017_readRegister(MCP23017_Self *self, uint8_t deviceAddr, uint8_t regAddr, uint8_t *rv);
 
 #endif /* DRIVER_MCP23017_INCLUDE_MCP23017_MCP23017_H_ */
