@@ -126,13 +126,60 @@ mcp23017_digitalRead(MCP23017_Self *self, uint8_t deviceAddr, uint8_t pin, bool*
   return rv;
 }
 
-
 /**
  * Sets the pin mode to either MCP23017_INPUT or MCP23017_OUTPUT
  */
 bool ICACHE_FLASH_ATTR
 mcp23017_pinMode(MCP23017_Self *self, uint8_t deviceAddr, uint8_t pin, MCP23017_PinMode pinmode) {
   return mcp23017_updateRegisterBit(self, deviceAddr, pin,(pinmode==MCP23017_INPUT),MCP23017_IODIRA,MCP23017_IODIRB);
+}
+
+/**
+ * Sets the pin mode on all the pins on bank A to MCP23017_INPUT or MCP23017_OUTPUT
+ */
+bool ICACHE_FLASH_ATTR
+mcp23017_pinModeA(MCP23017_Self *self, uint8_t deviceAddr, MCP23017_PinMode pinmode){
+  return mcp23017_writeRegister(self, deviceAddr, MCP23017_IODIRA, (pinmode==MCP23017_INPUT)?0xff:0x00);
+}
+
+/**
+ * Sets the output data of whole A bank
+ */
+bool ICACHE_FLASH_ATTR
+mcp23017_digitalWriteA(MCP23017_Self *self, uint8_t deviceAddr, uint8_t data) {
+  return mcp23017_writeRegister(self, deviceAddr, MCP23017_GPIOA, data);
+}
+
+/**
+ * reads the value of the whole A bank
+ */
+bool ICACHE_FLASH_ATTR
+mcp23017_digitalReadA(MCP23017_Self *self, uint8_t deviceAddr, uint8_t* data) {
+  return mcp23017_readRegister(self, deviceAddr, MCP23017_GPIOA, data);
+}
+
+/**
+ * Sets the pin mode on all the pins on bank B to MCP23017_INPUT or MCP23017_OUTPUT
+ */
+bool ICACHE_FLASH_ATTR
+mcp23017_pinModeB(MCP23017_Self *self, uint8_t deviceAddr, MCP23017_PinMode pinmode){
+  return mcp23017_writeRegister(self, deviceAddr, MCP23017_IODIRB, (pinmode==MCP23017_INPUT)?0xff:0x00);
+}
+
+/**
+ * reads the value of the whole B bank
+ */
+bool ICACHE_FLASH_ATTR
+mcp23017_digitalReadB(MCP23017_Self *self, uint8_t deviceAddr, uint8_t* data) {
+  return mcp23017_readRegister(self, deviceAddr, MCP23017_GPIOB, data);
+}
+
+/**
+ * Sets the output data of whole B bank
+ */
+bool ICACHE_FLASH_ATTR
+mcp23017_digitalWriteB(MCP23017_Self *self, uint8_t deviceAddr, uint8_t data) {
+  return mcp23017_writeRegister(self, deviceAddr, MCP23017_GPIOB, data);
 }
 
 /**

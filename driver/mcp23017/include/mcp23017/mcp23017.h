@@ -65,6 +65,37 @@ bool mcp23017_digitalWrite(MCP23017_Self *self, uint8_t deviceAddr, uint8_t pin,
 bool mcp23017_digitalRead(MCP23017_Self *self, uint8_t deviceAddr, uint8_t pin, bool* data);
 
 /**
+ * Sets the pin mode on all the pins on bank A to MCP23017_INPUT or MCP23017_OUTPUT
+ */
+bool mcp23017_pinModeA(MCP23017_Self *self, uint8_t deviceAddr, MCP23017_PinMode pinmode);
+
+/**
+ * Sets the output data of whole A bank
+ */
+bool mcp23017_digitalWriteA(MCP23017_Self *self, uint8_t deviceAddr, uint8_t data);
+
+/**
+ * reads the value of the whole A bank
+ */
+bool mcp23017_digitalReadA(MCP23017_Self *self, uint8_t deviceAddr, uint8_t* data);
+
+/**
+ * Sets the pin mode on all the pins on bank B to MCP23017_INPUT or MCP23017_OUTPUT
+ */
+bool mcp23017_pinModeB(MCP23017_Self *self, uint8_t deviceAddr, MCP23017_PinMode pinmode);
+
+/**
+ * Sets the output data of whole B bank
+ */
+bool mcp23017_digitalWriteB(MCP23017_Self *self, uint8_t deviceAddr, uint8_t data);
+
+/**
+ * reads the value of the whole B bank
+ */
+bool mcp23017_digitalReadB(MCP23017_Self *self, uint8_t deviceAddr, uint8_t* data);
+
+
+/**
  * Sets the pin mode on all the pins to MCP23017_INPUT or MCP23017_OUTPUT
  */
 bool mcp23017_pinModeAB(MCP23017_Self *self, uint8_t deviceAddr, MCP23017_PinMode pinmode);
