@@ -1,7 +1,5 @@
 # esp8266_mcp23017
 
-*WORK IN PROGRESS*
-
 I²C Port expander driver for esp8266. It connects to the mcp2307 with two GPIO pins of your own choice.
 
 The API is very arduino:like, here is the mandatory blinky example:
@@ -27,9 +25,16 @@ mcp23017_digitalWrite(&mcpSelf, deviceAddr, aMcpPin, 1);
 delay
   ```
   
+You can access the bits one by one like above, by whole bytes or all the bits at once (uint16_t).
+
 The I²C driver is based on [zarya's I²C driver](https://github.com/zarya/esp8266_i2c_driver).
 
 While the rest of the MCP23017 driver is a heavily modified port of [Adafruit-MCP23017-Arduino-Library](https://github.com/adafruit/Adafruit-MCP23017-Arduino-Library).
+
+### Todo
+
+* interrupt support. I don't need this so it won't happend unless someone requests it.
+
 
 ###Required:
 
