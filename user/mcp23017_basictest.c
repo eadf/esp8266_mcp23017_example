@@ -36,7 +36,8 @@ mcp23017_basictest(MCP23017_Self * mcpSelf) {
   uint8_t i=0;
   uint8_t j=0;
   uint8_t d = 0;
-  uint8_t rv = 0;
+  bool rv = 0;
+  uint8_t rvb = 0;
   bool testFail = false;
 
   uint8_t deviceAddr = 0;
@@ -88,9 +89,9 @@ mcp23017_basictest(MCP23017_Self * mcpSelf) {
         mcp23017_digitalWriteA(mcpSelf, deviceAddr, d<<ii);
 
         mcp23017_pinModeB(mcpSelf, deviceAddr, MCP23017_INPUT);
-        mcp23017_digitalReadB(mcpSelf, deviceAddr, &rv);
-        if ( rv != d<<jj) {
-          os_printf("uint8: byte B should be %d, but it was %d i=%d, ii=%d, j=%d, jj=%d \n", d<<jj, rv, i, ii, j, jj);
+        mcp23017_digitalReadB(mcpSelf, deviceAddr, &rvb);
+        if ( rvb != d<<jj) {
+          os_printf("uint8: byte B should be %d, but it was %d i=%d, ii=%d, j=%d, jj=%d \n", d<<jj, rvb, i, ii, j, jj);
           testFail = true;
         }
       } else {
@@ -98,9 +99,9 @@ mcp23017_basictest(MCP23017_Self * mcpSelf) {
         mcp23017_digitalWriteB(mcpSelf, deviceAddr, d<<jj);
 
         mcp23017_pinModeA(mcpSelf, deviceAddr, MCP23017_INPUT);
-        mcp23017_digitalReadA(mcpSelf, deviceAddr, &rv);
-        if ( rv != d<<ii) {
-          os_printf("uint8: byte A should be %d, but it was %d i=%d, ii=%d, j=%d, jj=%d \n", d<<ii, rv, i, ii, j, jj);
+        mcp23017_digitalReadA(mcpSelf, deviceAddr, &rvb);
+        if ( rvb != d<<ii) {
+          os_printf("uint8: byte A should be %d, but it was %d i=%d, ii=%d, j=%d, jj=%d \n", d<<ii, rvb, i, ii, j, jj);
           testFail = true;
         }
       }
@@ -111,9 +112,9 @@ mcp23017_basictest(MCP23017_Self * mcpSelf) {
   mcp23017_digitalWriteA(mcpSelf, deviceAddr, 0x8d);
 
   mcp23017_pinModeB(mcpSelf, deviceAddr, MCP23017_INPUT);
-  mcp23017_digitalReadB(mcpSelf, deviceAddr, &rv);
-  if ( rv != 0xb1) {
-    os_printf("uint8: byte B should be %d, but it was %d\n", 0xb1, rv);
+  mcp23017_digitalReadB(mcpSelf, deviceAddr, &rvb);
+  if ( rvb != 0xb1) {
+    os_printf("uint8: byte B should be %d, but it was %d\n", 0xb1, rvb);
     testFail = true;
   }
 
@@ -121,8 +122,8 @@ mcp23017_basictest(MCP23017_Self * mcpSelf) {
   mcp23017_digitalWriteB(mcpSelf, deviceAddr, 0x8d);
 
   mcp23017_pinModeA(mcpSelf, deviceAddr, MCP23017_INPUT);
-  mcp23017_digitalReadA(mcpSelf, deviceAddr, &rv);
-  if ( rv != 0xb1) {
+  mcp23017_digitalReadA(mcpSelf, deviceAddr, &rvb);
+  if ( rvb != 0xb1) {
     os_printf("uint8: byte A should be %d, but it was %d\n", 0xb1, rv);
     testFail = true;
   }
