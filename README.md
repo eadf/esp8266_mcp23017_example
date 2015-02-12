@@ -11,7 +11,7 @@ MCP23017_Self mcpSelf;  // in lieu of C++ member data we have structs :)
 uint8_t scl_pin=0;
 uint8_t sda_pin=2;
 uint8_t deviceAddr=0;
-uint8_t aMcpPin = 2;
+uint8_t aMcpPin = 2; // the pin on the mcp23017 we want to write to
 
 mcp23017_init(&mcpSelf, scl_pin, sda_pin);
 mcp23017_pinMode(&mcpSelf, deviceAddr, aMcpPin, MCP23017_OUTPUT);
