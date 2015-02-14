@@ -1,6 +1,6 @@
 # esp8266_mcp23017
 
-I²C Port expander driver for esp8266. It connects to the mcp2307 with two GPIO pins of your own choice.
+I²C Port expander [driver](https://github.com/eadf/esp8266_mcp23017) example for esp8266. It connects to the mcp2307 with two GPIO pins of your own choice.
 
 The API is very arduino:like, here is the mandatory blinky example:
 ```
