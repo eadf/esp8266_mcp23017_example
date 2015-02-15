@@ -71,7 +71,7 @@ void user_init(void) {
 
   // Make uart0 work with just the TX pin. Baud:115200,n,8,1
   // The RX pin is now free for GPIO use.
-  stdoutInit();
+  stdout_init();
 
   //turn off wifi - it's not needed in this demo
   //wifi_set_opmode(NULL_MODE); // NULL_MODE will crash the system under 0.9.5. It works with 0.9.4.
