@@ -20,7 +20,7 @@ ESPPORT		?= /dev/ttyUSB0
 TARGET		= app
 
 # which modules (subdirectories) of the project to include in compiling
-MODULES		= driver/stdout driver/easygpio driver/i2c driver/mcp23017 driver/stdout user
+MODULES		= driver/stdout driver/easygpio driver/i2c driver/mcp23017 user
 EXTRA_INCDIR    = include $(SDK_BASE)/../include
 
 # libraries used in this project, mainly provided by the SDK
