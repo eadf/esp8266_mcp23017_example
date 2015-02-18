@@ -36,13 +36,37 @@ While the rest of the MCP23017 driver is a heavily modified port of [Adafruit-MC
 * interrupt support. I don't need this so it won't happend unless someone requests it.
 
 
+### Basic test
+I've added a very basic, basic test into the demo.
+To use this test you should connect each output pin of the
+mcp23017 to corresponding pin on the 'other side' via a 10+K resistor.
+
+ left side pin | via | right side pin
+ --------------|-----|---------------
+  (bit8)  GPBO |10KOhm | GPA7  (bit7)
+  (bit9)  GPB1 |10KOhm | GPA6  (bit6)
+  (bit10) GPB2 | 10KOhm | GPA5  (bit5)
+  (bit11) GPB3 | 10KOhm | GPA4  (bit4)
+  (bit12) GPB4 |10KOhm | GPA3  (bit3)
+  (bit13) GPB5 | 10KOhm | GPA2  (bit2)
+  (bit14) GPB6 | 10KOhm | GPA1  (bit1)
+  (bit15) GPB7 | 10KOhm | GPA0  (bit0)
+ 
+ Hopefully you should see the text ```all tests passed``` in the console.
+ 
+# License 
+
+GNU GENERAL PUBLIC LICENSE Version 3
+
+The makefile is copied from [esp_mqtt.](https://github.com/tuanpmt/esp_mqtt)
+
 ###Building and installing:
 
 First you need to install the sdk and the easy way of doing that is to use [esp_open_sdk.](https://github.com/pfalcon/esp-open-sdk)
 
 You can put that anywhere you like (/opt/local/esp-open-sdk, /esptools etc etc)
 
-Then you could create a small setenv.sh file, containing the location of your newly compiled sdk and other platform specific info:
+Then you could create a small ```setenv.sh``` file, containing the location of your newly compiled sdk and other platform specific info;
 ```
 export SDK_BASE=/opt/local/esp-open-sdk/sdk
 export PATH=${SDK_BASE}/../xtensa-lx106-elf/bin:${PATH}
@@ -50,18 +74,12 @@ export ESPPORT=/dev/ttyO0
 ```
 (or setup your IDE to do the same)
 
-In the root of this project create a soft link Makefile -> Makefile.[mac,linux]
-```
-ln -s Makefile.linux Makefile
-```
-You don't *have* to do this, it just makes it more convenient to run ```make``` (instead of ```make -f Makefile.linux```)
-
 To make a clean build, flash and connect to the esp console you just do this in a shell:
 ```
 source setenv.sh # This is only needed once per session
 make clean && make test
 ```
 
-You won't be needing esptool, my makefiles only uses esptool.py (provided by esp-open-sdk)
+You won't be needing esptool, the makefile only uses esptool.py (provided by [esp_open_sdk](https://github.com/pfalcon/esp-open-sdk))
 
-I have tested this with sdk v0.9.5 and v0.9.4 (linux & mac makefile)
+I have tested this with sdk v0.9.5 and v0.9.4 (linux & mac)
