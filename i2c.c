@@ -42,7 +42,7 @@ static bool i2c_beginTransmission(I2C_Self *self, uint8_t deviceAddr, bool read)
 static void ICACHE_FLASH_ATTR
 i2c_sda(I2C_Self* self, uint8_t state) {
   //Set SDA line to state
-  GPIO_OUTPUT_SET(self->sda_pin, state&1);
+  GPIO_OUTPUT_SET(self->sda_pin, state);
 }
 
 /**
@@ -52,7 +52,7 @@ i2c_sda(I2C_Self* self, uint8_t state) {
 static void ICACHE_FLASH_ATTR
 i2c_sck(I2C_Self* self, uint8_t state) {
   //Set SCK line to state
-  GPIO_OUTPUT_SET(self->scl_pin, state&1);
+  GPIO_OUTPUT_SET(self->scl_pin, state);
 }
 
 /**
@@ -146,7 +146,7 @@ i2c_readByteCheckAck(I2C_Self* self, uint8_t *data) {
     i2c_sck(self,1);
     os_delay_us(I2C_SLEEP_TIME);
 
-    data_bit = i2c_read();
+    data_bit = !i2c_read();
     os_delay_us(I2C_SLEEP_TIME);
 
     data_bit <<= (7 - i);
@@ -193,7 +193,7 @@ i2c_writeByteCheckAck(I2C_Self* self, uint8_t data) {
 
   i2c_sck(self, 1);
   os_delay_us(I2C_SLEEP_TIME);
-  rv = i2c_read();
+  rv = !i2c_read();
 
   i2c_sck(self, 0);
   os_delay_us(I2C_SLEEP_TIME);
@@ -222,9 +222,10 @@ i2c_init(I2C_Self* self, uint8_t scl_pin, uint8_t sda_pin) {
     return false;
   }
 
-  easygpio_getGPIONameFunc(self->sda_pin, &(self->sda_name), &gpio_func);
-  easygpio_getGPIONameFunc(self->scl_pin, &(self->scl_name), &gpio_func);
-
+  if (!(easygpio_getGPIONameFunc(self->sda_pin, &(self->sda_name), &gpio_func) &&
+        easygpio_getGPIONameFunc(self->scl_pin, &(self->scl_name), &gpio_func) )) {
+    return false;
+  }
   //Disable interrupts
   ETS_GPIO_INTR_DISABLE();
 
