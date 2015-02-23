@@ -36,9 +36,11 @@ loop(void *timer_arg) {
   os_delay_us(10000);
 
   rv = mcp23017_digitalWrite(&mcpSelf, deviceAddr, 0, i&1);
+  //rv = mcp23017_digitalWriteA(&mcpSelf, deviceAddr, i&1);
   os_printf("mcp23017_digitalWrite(deviceAddr, 0, %d)=%s\n", i&1, rv?"ACK":"NACK");
   bool sample = false;
   rv = mcp23017_digitalRead(&mcpSelf, deviceAddr, 0, &sample);
+  //rv = mcp23017_digitalReadA(&mcpSelf, deviceAddr, &sample);
   os_printf("mcp23017_digitalRead(deviceAddr, 0)=%s sample=%d;\n\n",  rv?"ACK":"NACK", sample);
   os_delay_us(10000);
   i += 1;
@@ -52,7 +54,7 @@ static void ICACHE_FLASH_ATTR
 setup(void *timer_arg) {
   // setup stuff
   mcp23017_init(&mcpSelf, 2, 0);
-  os_printf("mcp23017_init(0,2);\n");
+  os_printf("mcp23017_init(scl=2,sda=0);\n");
 
   mcp23017_basictest(&mcpSelf);
 
