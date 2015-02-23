@@ -50,7 +50,7 @@ loop(void *timer_arg) {
 static void ICACHE_FLASH_ATTR
 setup(void *timer_arg) {
   // setup stuff
-  mcp23017_init(&mcpSelf, 0, 2);
+  mcp23017_init(&mcpSelf, 2, 0);
   os_printf("mcp23017_init(0,2);\n");
 
   mcp23017_basictest(&mcpSelf);
