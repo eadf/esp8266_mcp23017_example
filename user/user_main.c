@@ -28,17 +28,18 @@ static void setup(void *timer_arg);
 static void ICACHE_FLASH_ATTR
 loop(void *timer_arg) {
   static uint8_t i = 0;
+  bool rv = false;
 
   mcp23017_pinModeAB(&mcpSelf, deviceAddr, MCP23017_INPUT);
   mcp23017_pinModeAB(&mcpSelf, deviceAddr, MCP23017_OUTPUT);
   os_printf("mcp23017_pinMode(0, MCP23017_OUTPUT);\n");
   os_delay_us(10000);
 
-  mcp23017_digitalWrite(&mcpSelf, deviceAddr, 0, i&1);
-  os_printf("mcp23017_digitalWrite(deviceAddr, 0, %d);\n", i&1);
+  rv = mcp23017_digitalWrite(&mcpSelf, deviceAddr, 0, i&1);
+  os_printf("mcp23017_digitalWrite(deviceAddr, 0, %d)=%s\n", i&1, rv?"ACK":"NACK");
   bool sample = false;
-  mcp23017_digitalRead(&mcpSelf, deviceAddr, 0, &sample);
-  os_printf("mcp23017_digitalRead(deviceAddr, 0)==%d;\n", sample);
+  rv = mcp23017_digitalRead(&mcpSelf, deviceAddr, 0, &sample);
+  os_printf("mcp23017_digitalRead(deviceAddr, 0)=%s sample=%d;\n\n",  rv?"ACK":"NACK", sample);
   os_delay_us(10000);
   i += 1;
 }
