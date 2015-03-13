@@ -97,7 +97,7 @@ endif
 
 
 # which modules (subdirectories) of the project to include in compiling
-MODULES		 = driver/stdout driver/i2c_master driver/mcp23017 user
+MODULES		 = localinclude driver/stdout driver/i2c_master driver/mcp23017 user
 EXTRA_INCDIR = include $(SDK_BASE)/../include
 
 # libraries used in this project, mainly provided by the SDK
