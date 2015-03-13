@@ -18,6 +18,7 @@
  */
 
 #include "mcp23017_basictest.h"
+#include "osapi.h"
 #include "c_types.h"
 
 

@@ -49,9 +49,13 @@ loop(void *timer_arg) {
 static void ICACHE_FLASH_ATTR
 setup(void *timer_arg) {
   // setup stuff
-  mcp23017_init(&mcpSelf, 2, 0);
-  os_printf("mcp23017_init(scl=2,sda=0);\n");
+  i2c_master_gpio_init();
+  i2c_master_init();
+  os_printf("i2c_master_gpio_init: I2C_MASTER_SDA_GPIO=GPIO%d, I2C_MASTER_SCL_GPIO=GPIO%d, I2C_MASTER_HALF_CYCLE=%d\n", I2C_MASTER_SDA_GPIO, I2C_MASTER_SCL_GPIO, I2C_MASTER_HALF_CYCLE);
 
+  mcp23017_init(&mcpSelf);
+
+  // run some tests
   mcp23017_basictest(&mcpSelf);
 
   // Start loop timer
