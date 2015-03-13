@@ -9,14 +9,10 @@
 #include "mcp23017/mcp23017.h"
 #include "mcp23017_basictest.h"
 
-#define user_procTaskPrio        0
-#define user_procTaskQueueLen    1
-
 #define user_procTaskPeriod      1000
 static volatile os_timer_t loop_timer;
 static uint8_t deviceAddr = 0;
 static MCP23017_Self mcpSelf;
-os_event_t user_procTaskQueue[user_procTaskQueueLen];
 
 static void nop_procTask(os_event_t *events);
 static void loop(void *timer_arg);
@@ -64,12 +60,6 @@ setup(void *timer_arg) {
   os_timer_arm(&loop_timer, 1000, 1);
 }
 
-//Do nothing function
-static void ICACHE_FLASH_ATTR
-nop_procTask(os_event_t *events) {
-  os_delay_us(10);
-}
-
 void user_init(void) {
 
   // Make uart0 work with just the TX pin. Baud:115200,n,8,1
@@ -84,10 +74,6 @@ void user_init(void) {
   os_timer_disarm(&loop_timer);
   os_timer_setfn(&loop_timer, (os_timer_func_t *) setup, NULL);
   os_timer_arm(&loop_timer, 3000, false);
-
-  //Start no-operation os task
-  system_os_task(nop_procTask, user_procTaskPrio, user_procTaskQueue, user_procTaskQueueLen);
-  system_os_post(user_procTaskPrio, 0, 0);
 
   os_printf("\nSystem started ...\n");
 }
