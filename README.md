@@ -8,12 +8,11 @@ The API is very arduino:like, here is the mandatory blinky example:
 ....
 // setup
 MCP23017_Self mcpSelf;  // in lieu of C++ member data we have structs :)
-uint8_t scl_pin=0;
-uint8_t sda_pin=2;
 uint8_t deviceAddr=0;
 uint8_t aMcpPin = 2; // the pin on the mcp23017 we want to write to
-
-mcp23017_init(&mcpSelf, scl_pin, sda_pin);
+i2c_master_gpio_init(); // uses the pins defined by I2C_MASTER_SDA_GPIO & I2C_MASTER_SCL_GPIO
+i2c_master_init();  
+mcp23017_init(&mcpSelf);
 mcp23017_pinMode(&mcpSelf, deviceAddr, aMcpPin, MCP23017_OUTPUT);
 
 ....
@@ -27,7 +26,7 @@ delay
   
 You can access the bits one by one like above, by whole bytes or all the bits at once (uint16_t).
 
-The I²C driver is based on [zarya's I²C driver](https://github.com/zarya/esp8266_i2c_driver).
+The I²C driver is an extended version of the IoT demo i2c_master driver.
 
 While the rest of the MCP23017 driver is a heavily modified port of [Adafruit-MCP23017-Arduino-Library](https://github.com/adafruit/Adafruit-MCP23017-Arduino-Library).
 
